@@ -630,8 +630,12 @@ ${ids.map(id => `        uniform sampler2D u_texture_${id};`).join('\n')}
         void main() {
 ${ids.map(id => `          float ${id}_value = texture2D(u_texture_${id}, v_texCoord)[0];`).join('\n')}
           float value = ${compiledExpression};
+          
+          bool isnan( float val ) {
+            return ( val < 0.0 || 0.0 < val || val == 0.0 ) ? false : true;
+          }
 
-          if (value == u_noDataValue)
+          if (value == u_noDataValue || isnan(value))
             gl_FragColor = vec4(0.0, 0, 0, 0.0);
           else if ((!u_clampLow && value < u_domain[0]) || (!u_clampHigh && value > u_domain[1]))
             gl_FragColor = vec4(0, 0, 0, 0);
@@ -733,8 +737,7 @@ ${ids.map(id => `          float ${id}_value = texture2D(u_texture_${id}, v_texC
               alpha = 0;
             }
           }
-          // NaN values should be the only values that are not equal to itself
-          if (data[i] === this.noDataValue || data[i] !== data[i]) {
+          if (data[i] === this.noDataValue || Number.isNaN(data[i])) {
             alpha = 0;
           } else if (this.applyDisplayRange
             && (data[i] < this.displayRange[0] || data[i] >= this.displayRange[1])) {
